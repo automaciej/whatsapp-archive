@@ -1,8 +1,8 @@
 #!/usr/bin/python3
 
-import whatsapp_archive
 import unittest
 import datetime
+import whatsapp_archive
 
 INPUT_1 = ["13/01/18, 01:23 - Fake Name: line1\n", "line2\n"]
 INPUT_2 = ["13/01/18, 01:23 - Fake Name: line1\n", "line2\n",
@@ -26,7 +26,7 @@ class IdentifyMessagesTest(unittest.TestCase):
 
     def testTemplateData(self):
         messages = whatsapp_archive.IdentifyMessages(INPUT_3)
-        template_data = whatsapp_archive.TemplateData(messages)
+        template_data = whatsapp_archive.TemplateData(messages, "fake_filename")
         self.assertEqual(template_data, {
             'by_user': [('Fake Name',
               [(datetime.datetime(2018, 1, 13, 1, 23),
@@ -37,7 +37,9 @@ class IdentifyMessagesTest(unittest.TestCase):
              ('Name Two',
               [(datetime.datetime(2018, 1, 13, 1, 25),
                 'Name Two',
-                'single line')])]})
+                'single line')])],
+              'input_basename': 'fake_filename',
+              'input_full_path': 'fake_filename'})
 
 if __name__ == '__main__':
     unittest.main()
