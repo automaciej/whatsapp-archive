@@ -137,8 +137,8 @@ def main():
     logging.basicConfig(level=logging.INFO)
     parser = argparse.ArgumentParser(description='Produce a browsable history '
             'of a WhatsApp conversation')
-    parser.add_argument('-i', dest='input_file')
-    parser.add_argument('-o', dest='output_file')
+    parser.add_argument('-i', dest='input_file', required=True)
+    parser.add_argument('-o', dest='output_file', required=True)
     args = parser.parse_args()
     with open(args.input_file, 'r') as fd:
         messages = IdentifyMessages(fd.readlines())
