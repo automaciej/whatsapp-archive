@@ -31,7 +31,7 @@ def ParseLine(line):
     m = re.match(WHATSAPP_RE, line)
     if m:
         d = dateutil.parser.parse("%s %s" % (m.group('date'),
-            m.group('time')))
+            m.group('time')), dayfirst=True)
         return d, m.group('name'), m.group('body')
     return None
 
