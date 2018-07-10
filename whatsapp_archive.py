@@ -21,6 +21,12 @@ WHATSAPP_RE = ('(?P<date>[\d/]+)'
                ': '
                '(?P<body>.*$)')
 
+FIRSTLINE_RE = ('(?P<date>[\d/]+)'
+               ', '
+               '(?P<time>[\d:]+)'
+               ' - '
+               '(?P<body>.*$)')
+
 
 class Error(Exception):
     """Something bad happened."""
@@ -33,6 +39,12 @@ def ParseLine(line):
         d = dateutil.parser.parse("%s %s" % (m.group('date'),
             m.group('time')), dayfirst=True)
         return d, m.group('name'), m.group('body')
+    # Maybe it's the first line which doesn't contain a person's name.
+    m = re.match(FIRSTLINE_RE, line)
+    if m:
+        d = dateutil.parser.parse("%s %s" % (m.group('date'),
+            m.group('time')), dayfirst=True)
+        return d, "nobody", m.group('body')
     return None
 
 
