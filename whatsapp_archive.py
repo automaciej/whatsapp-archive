@@ -90,10 +90,11 @@ def TemplateData(messages, input_filename):
 
 
 def FormatHTML(data):
-    tmpl = """
+    tmpl = """<!DOCTYPE html>
     <html>
     <head>
         <title>WhatsApp archive {{ input_basename }}</title>
+        <meta charset="utf-8"/>
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <style>
             body {
@@ -156,7 +157,7 @@ def main():
         messages = IdentifyMessages(fd.readlines())
     template_data = TemplateData(messages, args.input_file)
     HTML = FormatHTML(template_data)
-    with open(args.output_file, 'w') as fd:
+    with open(args.output_file, 'w', encoding='utf-8') as fd:
         fd.write(HTML)
 
 
