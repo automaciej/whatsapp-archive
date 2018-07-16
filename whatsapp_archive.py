@@ -68,7 +68,7 @@ def IdentifyMessages(lines):
             msg_date, msg_user, msg_body = m
         else:
             if msg_date is None:
-                raise Error("Can't parse the first line: " + line)
+                raise Error("Can't parse the first line: " + repr(line))
             msg_body += '\n' + line.strip()
     # The last message remains. Let's add it, if it exists.
     if msg_date is not None:
@@ -152,7 +152,7 @@ def main():
     parser.add_argument('-i', dest='input_file', required=True)
     parser.add_argument('-o', dest='output_file', required=True)
     args = parser.parse_args()
-    with open(args.input_file, 'r') as fd:
+    with open(args.input_file, 'rt', encoding='utf-8-sig') as fd:
         messages = IdentifyMessages(fd.readlines())
     template_data = TemplateData(messages, args.input_file)
     HTML = FormatHTML(template_data)
