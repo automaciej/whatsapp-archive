@@ -13,16 +13,16 @@ import re
 
 # Format of the standard WhatsApp export line. This is likely to change in the
 # future and so this application will need to be updated.
-WHATSAPP_RE = ('(?P<date>[\d/]+)'
-               ', '
+WHATSAPP_RE = ('(?P<date>[\d/-]+)'
+               ',? '
                '(?P<time>[\d:]+)'
                ' - '
                '(?P<name>[^:]+)'
                ': '
                '(?P<body>.*$)')
 
-FIRSTLINE_RE = ('(?P<date>[\d/]+)'
-               ', '
+FIRSTLINE_RE = ('(?P<date>[\d/-]+)'
+               ',? '
                '(?P<time>[\d:]+)'
                ' - '
                '(?P<body>.*$)')

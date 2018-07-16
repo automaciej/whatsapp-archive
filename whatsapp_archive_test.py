@@ -12,6 +12,12 @@ INPUT_3 = ["13/01/18, 01:23 - Fake Name: line1\n", "line2\n",
         "13/01/18, 01:25 - Name Two: single line\n"]
 INPUT_4 = ["14/04/18, 22:08 - Nesta conversa, (…)\n",
            "14/04/18, 22:08 - Alguém: Olá!\n"]
+# Format from a different locale setting.
+INPUT_5 = ["19-02-18 17:02 - Los mensajes y llamadas en este chat ahora están "
+           "protegidos con cifrado de extremo a extremo. Toca para más "
+           "información.\n",
+           "19-02-18 17:02 - human1: Hola\n",
+           "19-02-18 17:14 - human2: como estás?\n"]
 
 class IdentifyMessagesTest(unittest.TestCase):
 
@@ -52,6 +58,28 @@ class IdentifyMessagesTest(unittest.TestCase):
                 ]),
                 ('Alguém', [
                     (datetime.datetime(2018, 4, 14, 22, 8), 'Alguém', 'Olá!'),
+                ]),
+              ],
+              'input_basename': 'fake_filename',
+              'input_full_path': 'fake_filename'})
+
+    def testDifferentFormat(self):
+        self.maxDiff = None
+        messages = whatsapp_archive.IdentifyMessages(INPUT_5)
+        template_data = whatsapp_archive.TemplateData(messages, "fake_filename")
+        self.assertEqual(template_data, {
+            'by_user': [
+                ('nobody', [
+                    (datetime.datetime(2018, 2, 19, 17, 2),
+                        'nobody', 'Los mensajes y llamadas en este chat ahora '
+                        'están protegidos con cifrado de extremo a extremo. '
+                        'Toca para más información.'),
+                ]),
+                ('human1', [
+                    (datetime.datetime(2018, 2, 19, 17, 2), 'human1', 'Hola'),
+                ]),
+                ('human2', [
+                    (datetime.datetime(2018, 2, 19, 17, 14), 'human2', 'como estás?'),
                 ]),
               ],
               'input_basename': 'fake_filename',
