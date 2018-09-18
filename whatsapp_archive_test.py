@@ -18,6 +18,9 @@ INPUT_5 = ["19-02-18 17:02 - Los mensajes y llamadas en este chat ahora están "
            "información.\n",
            "19-02-18 17:02 - human1: Hola\n",
            "19-02-18 17:14 - human2: como estás?\n"]
+# Based on https://github.com/automatthias/whatsapp-archive/issues/1
+# 12-hour format.
+INPUT_6 = ["2016-06-27, 8:04:08 AM: Neil: Hi\n",]
 
 class IdentifyMessagesTest(unittest.TestCase):
 
@@ -80,6 +83,20 @@ class IdentifyMessagesTest(unittest.TestCase):
                 ]),
                 ('human2', [
                     (datetime.datetime(2018, 2, 19, 17, 14), 'human2', 'como estás?'),
+                ]),
+              ],
+              'input_basename': 'fake_filename',
+              'input_full_path': 'fake_filename'})
+
+    def testNeil(self):
+        self.maxDiff = None
+        messages = whatsapp_archive.IdentifyMessages(INPUT_6)
+        template_data = whatsapp_archive.TemplateData(messages, "fake_filename")
+        self.assertEqual(template_data, {
+            'by_user': [
+                ('Neil', [
+                    (datetime.datetime(2016, 6, 27, 8, 4, 8),
+                        'Neil', 'Hi'),
                 ]),
               ],
               'input_basename': 'fake_filename',

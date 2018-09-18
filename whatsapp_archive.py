@@ -13,18 +13,19 @@ import re
 
 # Format of the standard WhatsApp export line. This is likely to change in the
 # future and so this application will need to be updated.
+TIME_RE = '(?P<time>[\d:]+( [AP]M)?)'
 WHATSAPP_RE = ('(?P<date>[\d/-]+)'
-               ',? '
-               '(?P<time>[\d:]+)'
-               ' - '
+               ',? ' +
+               TIME_RE +
+               '( -|:) '
                '(?P<name>[^:]+)'
                ': '
                '(?P<body>.*$)')
 
 FIRSTLINE_RE = ('(?P<date>[\d/-]+)'
-               ',? '
-               '(?P<time>[\d:]+)'
-               ' - '
+               ',? ' +
+               TIME_RE +
+               '( -|:) '
                '(?P<body>.*$)')
 
 
@@ -68,7 +69,8 @@ def IdentifyMessages(lines):
             msg_date, msg_user, msg_body = m
         else:
             if msg_date is None:
-                raise Error("Can't parse the first line: " + repr(line))
+                raise Error("Can't parse the first line: " + repr(line) +
+                        ', regexes are ' + repr(FIRSTLINE_RE) + ' and ' + repr(WHATSAPP_RE))
             msg_body += '\n' + line.strip()
     # The last message remains. Let's add it, if it exists.
     if msg_date is not None:
