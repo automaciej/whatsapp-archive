@@ -136,7 +136,7 @@ def FormatHTML(data):
             <span class="date">{{ messages[0][0] }}</span>
             <ol class="messages">
             {% for message in messages %}
-                <li>{{ message[2] }}</li>
+                <li>{{ message[2] | e }}</li>
             {% endfor %}
             </ol>
             </li>
