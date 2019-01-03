@@ -1,7 +1,9 @@
 #!/usr/bin/python3
 
 import unittest
+
 import datetime
+import re
 import whatsapp_archive
 
 INPUT_1 = ["13/01/18, 01:23 - Fake Name: line1\n", "line2\n"]
@@ -18,6 +20,7 @@ INPUT_5 = ["19-02-18 17:02 - Los mensajes y llamadas en este chat ahora están "
            "información.\n",
            "19-02-18 17:02 - human1: Hola\n",
            "19-02-18 17:14 - human2: como estás?\n"]
+
 # Based on https://github.com/automatthias/whatsapp-archive/issues/1
 # 12-hour format.
 INPUT_6 = ["2016-06-27, 8:04:08 AM: Neil: Hi\n",]
@@ -101,6 +104,41 @@ class IdentifyMessagesTest(unittest.TestCase):
               ],
               'input_basename': 'fake_filename',
               'input_full_path': 'fake_filename'})
+
+    def testEwoutTime(self):
+        INPUT = """[02-12-18 22:55:45]"""
+        result = re.match(whatsapp_archive.DATETIME_RE, INPUT)
+        self.assertIsNotNone(result)
+        self.assertEqual(('02-12-18', '22:55:45', None), result.groups())
+
+    def testEwoutName(self):
+        INPUT = """[02-12-18 22:55:45] Ewout:"""
+        pattern = (whatsapp_archive.DATETIME_RE + whatsapp_archive.SEPARATOR_RE
+                + whatsapp_archive.NAME_RE)
+        result = re.match(pattern, INPUT)
+        self.assertIsNotNone(result)
+        self.assertEqual(('02-12-18', '22:55:45', None, ' ', 'Ewout'), result.groups())
+
+    def testEwout1(self):
+        INPUT = ["""[02-12-18 22:55:45] Ewout: Test\n""",]
+        self.maxDiff = None
+        messages = whatsapp_archive.IdentifyMessages(INPUT)
+        self.assertEqual(
+                [(datetime.datetime(2018, 12, 2, 22, 55, 45), 'Ewout', 'Test')],
+                messages)
+
+    def testEwout2(self):
+        INPUT = ["[02-12-18 22:55:45] Ewout: Test\n",
+                 "[02-12-18 22:56:00] Ewout: Does this work?\n",
+                 "[02-12-18 22:56:20] Ewout: Sending a message to myself\n",
+        ]
+        self.maxDiff = None
+        messages = whatsapp_archive.IdentifyMessages(INPUT)
+        self.assertEqual([
+            (datetime.datetime(2018, 12, 2, 22, 55, 45), 'Ewout', 'Test'),
+            (datetime.datetime(2018, 12, 2, 22, 56), 'Ewout', 'Does this work?'),
+            (datetime.datetime(2018, 12, 2, 22, 56, 20), 'Ewout', 'Sending a message to myself'),
+        ], messages)
 
 
 if __name__ == '__main__':
