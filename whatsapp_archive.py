@@ -9,6 +9,7 @@ import itertools
 import jinja2
 import logging
 import os.path
+import os
 import re
 
 # Format of the standard WhatsApp export line. This is likely to change in the
@@ -66,8 +67,10 @@ def IdentifyMessages(lines, os=os.getcwd()):
                 # one we've seen previously -- it's complete. Let's add it to
                 # the list.
                 if "(archivo adjunto)" in msg_body or "(attached file)" in msg_body:
+                    # Determines if the current message have a file (WORK ONLY IN SPANISH AND ENGLISH)
                     messages.append((msg_date, msg_user, msg_body, (os + "\\" + msg_body.split("(")[0][1:-1]).replace("\\", '/')))
                 else:
+                    # if not, is filled whit "0"
                     messages.append((msg_date, msg_user, msg_body, 0))
             msg_date, msg_user, msg_body = m
         else:
@@ -78,10 +81,10 @@ def IdentifyMessages(lines, os=os.getcwd()):
             msg_body += '\n' + line.strip()
     # The last message remains. Let's add it, if it exists.
     if msg_date is not None:
-        if "(archivo adjunto)" in msg_body:
-            messages.append((msg_date, msg_user, msg_body, msg_body.split("(")[0][1:-1], os))
+        if "(archivo adjunto)" in msg_body or "(attached file)" in msg_body:
+            messages.append((msg_date, msg_user, msg_body, (os + "\\" + msg_body.split("(")[0][1:-1]).replace("\\", '/')))
         else:
-            messages.append((msg_date, msg_user, msg_body, 0, os))
+            messages.append((msg_date, msg_user, msg_body, 0))
     return messages
 
 
