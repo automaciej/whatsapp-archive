@@ -49,7 +49,7 @@ def ParseLine(line):
     return None
 
 
-def IdentifyMessages(lines):
+def IdentifyMessages(lines, os=os.getcwd()):
     """Input text can contain multi-line messages. If there's a line that
     doesn't start with a date and a name, that's probably a continuation of the
     previous message and should be appended to it.
@@ -65,7 +65,10 @@ def IdentifyMessages(lines):
                 # We have a new message, so there will be no more lines for the
                 # one we've seen previously -- it's complete. Let's add it to
                 # the list.
-                messages.append((msg_date, msg_user, msg_body))
+                if "(archivo adjunto)" in msg_body or "(attached file)" in msg_body:
+                    messages.append((msg_date, msg_user, msg_body, (os + "\\" + msg_body.split("(")[0][1:-1]).replace("\\", '/')))
+                else:
+                    messages.append((msg_date, msg_user, msg_body, 0))
             msg_date, msg_user, msg_body = m
         else:
             if msg_date is None:
@@ -75,7 +78,10 @@ def IdentifyMessages(lines):
             msg_body += '\n' + line.strip()
     # The last message remains. Let's add it, if it exists.
     if msg_date is not None:
-        messages.append((msg_date, msg_user, msg_body))
+        if "(archivo adjunto)" in msg_body:
+            messages.append((msg_date, msg_user, msg_body, msg_body.split("(")[0][1:-1], os))
+        else:
+            messages.append((msg_date, msg_user, msg_body, 0, os))
     return messages
 
 
@@ -101,32 +107,73 @@ def FormatHTML(data):
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <style>
             body {
-                font-family: sans-serif;
+                font-family: Arial, Helvetica, sans-serif;
                 font-size: 10px;
+                background-color: rgb(255, 255, 255);
+                display: flex;
+                width: 100%;
+                flex-direction: column;
             }
-            ol.users {
+            @media screen and (min-width: 600px) {
+                body, ol.users {
+                flex-direction: column;
+                width: 600px;
+                }
+            }
+                    ol.users {
                 list-style-type: none;
                 list-style-position: inside;
-                margin: 0;
+                margin: 1em;
                 padding: 0;
+                background-color: rgb(250, 240, 227);
+                border-radius: 7px;
             }
             ol.messages {
                 list-style-type: none;
                 list-style-position: inside;
-                margin: 0;
-                padding: 0;
+                margin: 1em;
+                padding-left: 1.5em;
             }
             ol.messages li {
                 margin-left: 1em;
                 font-size: 12px;
+                background-color: rgb(220,248,200);
+                margin: 1em;
+                margin-left: 0em;
+                margin-bottom: 0em;
+                margin-top: 0.3em;
+                padding: 0.8em;
+                border-width:1px;
+                border-style: solid;
+                border-color:rgb(225, 245, 212);
+                border-radius: 7px;
+                background: #dcf8c8;
+                box-shadow:  5px 5px 5px #b0c6a0,
+                            0px -0px 7px #fffff0;
             }
             span.username {
-                color: gray;
+                color: rgb(26, 26, 26);
+                font-size: 14px;
+                font-weight: bolder;
+
             }
             span.date {
-                color: gray;
+                color: rgb(20, 20, 20);
+                font-style: Oblique;
+                font-size: 10px;
+            }
+
+            ol.img {
+                display: block;
+                margin-left: auto;
+                margin-right: auto;
+                width: 50%;
+                border-width:1px;
+                border-style: solid;
+                border-color:rgb(225, 245, 212);
             }
         </style>
+
     </head>
     <body>
         <h1>{{ input_basename }}</h1>
@@ -137,7 +184,15 @@ def FormatHTML(data):
             <span class="date">{{ messages[0][0] }}</span>
             <ol class="messages">
             {% for message in messages %}
-                <li>{{ message[2] | e }}</li>
+                {% if message[3] != 0 %}
+                    {% if "IMG" in message[3] %}
+                        <a href='{{ message[3] }}' target="_blank"><img src='{{ message[3] }}' width="400"></img></a>
+                    {% elif "opus" in message[3] %}
+                        <li> <A HREF="{{ message[3] }}" target="_blank"> ESCUCHAR AUDIO </A> </li>
+                    {% endif %}
+                {% else %}
+                    <li>{{ message[2] | e }}</li>
+                {% endif %}
             {% endfor %}
             </ol>
             </li>
