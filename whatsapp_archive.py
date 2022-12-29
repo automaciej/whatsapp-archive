@@ -15,7 +15,7 @@ import re
 # future and so this application will need to be updated.
 DATE_RE = '(?P<date>[\d/-]+)'
 TIME_RE = '(?P<time>[\d:]+( [AP]M)?)'
-DATETIME_RE = '\[?' + DATE_RE + ',? ' + TIME_RE + '\]?'
+DATETIME_RE = '\[?' + DATE_RE + ',? ' + 'à? ?' + TIME_RE + '\]?'
 SEPARATOR_RE = '( - |: | )'
 NAME_RE = '(?P<name>[^:]+)'
 WHATSAPP_RE = (DATETIME_RE +
@@ -48,6 +48,10 @@ def ParseLine(line):
         return d, "nobody", m.group('body')
     return None
 
+
+def ParseImg(line):
+	newstr = re.sub(r'(IMG.*jpg) \(.*\)', r'<IMG SRC="WhatsApp Images/\1" width=400/>', line)
+	return newstr
 
 def IdentifyMessages(lines):
     """Input text can contain multi-line messages. If there's a line that
@@ -159,7 +163,7 @@ def main():
     with open(args.input_file, 'rt', encoding='utf-8-sig') as fd:
         messages = IdentifyMessages(fd.readlines())
     template_data = TemplateData(messages, args.input_file)
-    HTML = FormatHTML(template_data)
+    HTML = ParseImg(FormatHTML(template_data))
     with open(args.output_file, 'w', encoding='utf-8') as fd:
         fd.write(HTML)
 

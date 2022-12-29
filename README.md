@@ -16,3 +16,8 @@ On Linux, run this in shell. On Windows, run this in cmd.
     ./whatsapp_archive.py -i your_file.txt -o output.html
 
 [saving]: https://faq.whatsapp.com/en/android/23756533/?category=5245251
+
+
+Modifications:
+
+   * JLT : 29/12/2022 add the possibility to interpret image link and show images in browser
