@@ -280,6 +280,18 @@ def FormatHTML(data):
                             <source src="{{ media }}" type="audio/ogg; codecs=opus">
                           </audio>
                         </li>
+                    {% elif "m4a" in media %}
+                        <li>
+                          <audio controls>
+                            <source src="{{ media }}" type="audio/x-m4a">
+                          </audio>
+                        </li>
+                    {% elif "mp4" in media %}
+                        <li>
+                           <video controls>
+                             <source src="{{ media }}" type="video/mp4"/>
+                           </video>
+                        </li>
                     {% else %}
                         <li>
                           unsupported media {{ media | e }}
