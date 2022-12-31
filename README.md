@@ -9,7 +9,7 @@ this script.
 Requirements:
 
    * python3-dateutil (on Debian)
-   * python2-jinja2
+   * python3-jinja2
 
 On Linux, run this in shell. On Windows, run this in cmd.
 
