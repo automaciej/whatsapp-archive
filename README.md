@@ -6,10 +6,11 @@ Use the [Saving your chat history][saving] instructions to export your chat
 history. You'll get an email with a .txt file. Save it on disk, and then run
 this script.
 
-Requirements:
+Requirements (on Debian):
 
-   * python3-dateutil (on Debian)
-   * python3-jinja2
+   * `python3-dateutil`
+   * `python3-jinja2`
+   * `python3-parameterized`
 
 On Linux, run this in shell. On Windows, run this in cmd.
 

@@ -3,6 +3,7 @@
 """Reads a WhatsApp conversation export file and writes a HTML file."""
 
 import argparse
+import collections
 import dateutil.parser
 import itertools
 import jinja2
@@ -10,37 +11,70 @@ import logging
 import os.path
 import re
 
-# Format of the standard WhatsApp export line. This is likely to change in the
-# future and so this application will need to be updated.
-DATE_RE = '(?P<date>[\d/-]+)'
+# Format of the standard WhatsApp export line. This is likely to continue to
+# change in the future and so this application will need to be updated.
+# The biggest challenge is that every language seems to have its own set of
+# rules for dates, and it's not trivial to match them all correctly.
 TIME_RE = '(?P<time>[\d:]+( [AP]M)?)'
-DATETIME_RE = '\[?' + DATE_RE + ',? ' + TIME_RE + '\]?'
 SEPARATOR_RE = '( - |: | )'
 NAME_RE = '(?P<name>[^:]+)'
-WHATSAPP_RE = (DATETIME_RE +
-               SEPARATOR_RE +
-               NAME_RE +
-               ': '
-               '(?P<body>.*$)')
-
-FIRSTLINE_RE = (DATETIME_RE +
-               SEPARATOR_RE +
-               '(?P<body>.*$)')
 
 
 class Error(Exception):
     """Something bad happened."""
 
 
-def ParseLine(line):
+Matchers = collections.namedtuple(
+    'Matchers',
+    'date time datetime name firstline line')
+
+
+def _MakeDatePattern():
+    patterns = []
+    d = '[\d]+'
+    separators = ['-', '\.', '/']
+    for sep in separators:
+        patterns.append(f'{d}{sep}{d}{sep}{d}')
+    return '(?P<date>' + '|'.join(patterns) + ')'
+
+
+def _MakeDateTimePattern():
+    return '\[?' + _MakeDatePattern() + ',? ' + TIME_RE + '\]?'
+
+
+def _MakeLinePattern():
+    return (
+        _MakeDateTimePattern() +
+        SEPARATOR_RE +
+        NAME_RE +
+        ': ' +
+        '(?P<body>.*$)')
+
+
+def _MakeFirstLinePattern():
+    return (_MakeDateTimePattern() + SEPARATOR_RE + '(?P<body>.*$)')
+
+
+def _MakeMatchers() -> Matchers:
+    return Matchers(
+        date = _MakeDatePattern(),
+        time = TIME_RE,
+        datetime = _MakeDateTimePattern(),
+        name = NAME_RE,
+        firstline = _MakeFirstLinePattern(),
+        line = _MakeLinePattern(),
+    )
+
+
+def ParseLine(matchers: Matchers, line: str):
     """Parses a single line of WhatsApp export file."""
-    m = re.match(WHATSAPP_RE, line)
+    m = re.match(matchers.line, line)
     if m:
         d = dateutil.parser.parse("%s %s" % (m.group('date'),
             m.group('time')), dayfirst=True)
         return d, m.group('name'), m.group('body')
     # Maybe it's the first line which doesn't contain a person's name.
-    m = re.match(FIRSTLINE_RE, line)
+    m = re.match(matchers.firstline, line)
     if m:
         d = dateutil.parser.parse("%s %s" % (m.group('date'),
             m.group('time')), dayfirst=True)
@@ -53,12 +87,13 @@ def IdentifyMessages(lines):
     doesn't start with a date and a name, that's probably a continuation of the
     previous message and should be appended to it.
     """
+    matchers = _MakeMatchers()
     messages = []
     msg_date = None
     msg_user = None
     msg_body = None
     for line in lines:
-        m = ParseLine(line)
+        m = ParseLine(matchers, line)
         if m is not None:
             if msg_date is not None:
                 # We have a new message, so there will be no more lines for the
@@ -69,8 +104,8 @@ def IdentifyMessages(lines):
         else:
             if msg_date is None:
                 raise Error("Can't parse the first line: " + repr(line) +
-                        ', regexes are FIRSTLINE_RE=' + repr(FIRSTLINE_RE) +
-                        ' and WHATSAPP_RE=' + repr(WHATSAPP_RE))
+                        ', regexes are first_line = ' + repr(matchers.firstline) +
+                        ' and line =' + repr(matchers.line))
             msg_body += '\n' + line.strip()
     # The last message remains. Let's add it, if it exists.
     if msg_date is not None:

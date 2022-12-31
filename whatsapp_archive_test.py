@@ -1,6 +1,7 @@
 #!/usr/bin/python3
 
 import unittest
+import parameterized
 
 import datetime
 import re
@@ -107,17 +108,21 @@ class IdentifyMessagesTest(unittest.TestCase):
 
     def testEwoutTime(self):
         INPUT = """[02-12-18 22:55:45]"""
-        result = re.match(whatsapp_archive.DATETIME_RE, INPUT)
+        matchers = whatsapp_archive._MakeMatchers()
+        result = re.match(matchers.datetime, INPUT)
         self.assertIsNotNone(result)
         self.assertEqual(('02-12-18', '22:55:45', None), result.groups())
 
     def testEwoutName(self):
         INPUT = """[02-12-18 22:55:45] Ewout:"""
-        pattern = (whatsapp_archive.DATETIME_RE + whatsapp_archive.SEPARATOR_RE
+        matchers = whatsapp_archive._MakeMatchers()
+        pattern = (matchers.datetime + whatsapp_archive.SEPARATOR_RE
                 + whatsapp_archive.NAME_RE)
         result = re.match(pattern, INPUT)
         self.assertIsNotNone(result)
-        self.assertEqual(('02-12-18', '22:55:45', None, ' ', 'Ewout'), result.groups())
+        self.assertEqual(('02-12-18', '22:55:45', None, ' ', 'Ewout'),
+                         result.groups(),
+                         f'{pattern}: {INPUT} -> {result!r}')
 
     def testEwout1(self):
         INPUT = ["""[02-12-18 22:55:45] Ewout: Test\n""",]
@@ -138,6 +143,41 @@ class IdentifyMessagesTest(unittest.TestCase):
             (datetime.datetime(2018, 12, 2, 22, 55, 45), 'Ewout', 'Test'),
             (datetime.datetime(2018, 12, 2, 22, 56), 'Ewout', 'Does this work?'),
             (datetime.datetime(2018, 12, 2, 22, 56, 20), 'Ewout', 'Sending a message to myself'),
+        ], messages)
+
+    @parameterized.parameterized.expand([
+        ('', False),
+        ('hissing cat', False),  # https://xkcd.com/1179/
+        ('02-12-18', True),
+        ('13/01/18', True),
+    ])
+    def testMatchDate(self, date_string, should_match):
+        pattern = whatsapp_archive._MakeDatePattern()
+        if should_match:
+            f = self.assertIsNotNone
+        else:
+            f = self.assertIsNone
+        result = re.match(pattern, date_string)
+        f(result,
+          f'{pattern}: {date_string!r} -> {result!r}')
+
+    def testRussian(self):
+        """Addressing #issue7.
+
+        https://github.com/automaciej/whatsapp-archive/issues/7
+        """
+        INPUT = [
+            "12.02.19, 14:22 - Сообщения в данной группе теперь защищены "
+            "сквозным шифрованием. Подробнее.\n",
+            "17.02.19, 12:28 - +7 982 111-11-11: Пётр,  ждём! Развязки\n",
+        ]
+        self.maxDiff = None
+        messages = whatsapp_archive.IdentifyMessages(INPUT)
+        self.assertEqual([
+            (datetime.datetime(2019, 2, 12, 14, 22), 'nobody',
+             'Сообщения в данной группе теперь защищены сквозным '
+             'шифрованием. Подробнее.'),
+            (datetime.datetime(2019, 2, 17, 12, 28), '+7 982 111-11-11', 'Пётр,  ждём! Развязки'),
         ], messages)
 
 
