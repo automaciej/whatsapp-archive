@@ -121,8 +121,20 @@ def TemplateData(messages, input_filename):
     by_user = []
     file_basename = os.path.basename(input_filename)
     for user, msgs_of_user in itertools.groupby(messages, lambda x: x[1]):
-        by_user.append((user, list(msgs_of_user)))
-    return dict(by_user=by_user, input_basename=file_basename,
+        msgs_as_list = list(msgs_of_user)
+        by_user.append((user, msgs_as_list[0][0].date(), msgs_as_list))
+    dates = []
+    prev_date = None
+    for _, first_msg_date, _ in by_user:
+        if first_msg_date != prev_date:
+            dates.append(first_msg_date)
+        prev_date = first_msg_date
+    by_month = []
+    # Item format:
+    # ((year, month), [(day_of_month, datetime_object)])
+    for month, days in itertools.groupby(dates, lambda x: (x.year, x.month)):
+        by_month.append((month, [(d.day, d) for d in days]))
+    return dict(by_user=by_user, dates=by_month, input_basename=file_basename,
             input_full_path=input_filename)
 
 
@@ -160,14 +172,28 @@ def FormatHTML(data):
             span.date {
                 color: gray;
             }
+            ol.date-index {
+                list-style: none;
+            }
         </style>
     </head>
     <body>
         <h1>{{ input_basename }}</h1>
+        <ol class="date-index">
+        {% for month, days in dates %}
+              <li> {{ month[0] }}-{{ month[1] }}
+              {% for day, date_ in days %}
+              <a href="#{{ date_ }}">{{ day }}</a>
+              {% endfor %}
+              </li>
+        {% endfor %}
+        </ol>
         <ol class="users">
-        {% for user, messages in by_user %}
+        {% for user, first_msg_date, messages in by_user %}
             <li>
-            <span class="username">{{ user }}</span>
+            <a id="{{first_msg_date}}">
+                <span class="username">{{ user }}</span>
+            </a>
             <span class="date">{{ messages[0][0] }}</span>
             <ol class="messages">
             {% for message in messages %}

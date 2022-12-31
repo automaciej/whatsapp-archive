@@ -40,18 +40,22 @@ class IdentifyMessagesTest(unittest.TestCase):
         ])
 
     def testTemplateData(self):
+        self.maxDiff = None
         messages = whatsapp_archive.IdentifyMessages(INPUT_3)
         template_data = whatsapp_archive.TemplateData(messages, "fake_filename")
         self.assertEqual(template_data, {
             'by_user': [
-                ('Fake Name', [
-                    (datetime.datetime(2018, 1, 13, 1, 23), 'Fake Name', 'line1\nline2'),
-                    (datetime.datetime(2018, 1, 13, 1, 24), 'Fake Name', 'line3')
-                ]),
-                ('Name Two', [
-                    (datetime.datetime(2018, 1, 13, 1, 25), 'Name Two', 'single line')
-                ])
+                ('Fake Name', datetime.date(2018, 1, 13),
+                 [
+                     (datetime.datetime(2018, 1, 13, 1, 23), 'Fake Name', 'line1\nline2'),
+                     (datetime.datetime(2018, 1, 13, 1, 24), 'Fake Name', 'line3')
+                 ]),
+                ('Name Two', datetime.date(2018, 1, 13),
+                 [
+                     (datetime.datetime(2018, 1, 13, 1, 25), 'Name Two', 'single line')
+                 ]),
             ],
+            'dates': [((2018, 1), [(13, datetime.date(2018, 1, 13))])],
             'input_basename': 'fake_filename',
             'input_full_path': 'fake_filename'})
 
@@ -60,15 +64,16 @@ class IdentifyMessagesTest(unittest.TestCase):
         template_data = whatsapp_archive.TemplateData(messages, "fake_filename")
         self.assertEqual(template_data, {
             'by_user': [
-                ('nobody', [
+                ('nobody', datetime.date(2018, 4, 14), [
                     (datetime.datetime(2018, 4, 14, 22, 8), 'nobody', 'Nesta conversa, (…)'),
                 ]),
-                ('Alguém', [
+                ('Alguém', datetime.date(2018, 4, 14), [
                     (datetime.datetime(2018, 4, 14, 22, 8), 'Alguém', 'Olá!'),
                 ]),
               ],
-              'input_basename': 'fake_filename',
-              'input_full_path': 'fake_filename'})
+            'dates': [((2018, 4), [(14, datetime.date(2018, 4, 14))])],
+            'input_basename': 'fake_filename',
+            'input_full_path': 'fake_filename'})
 
     def testDifferentFormat(self):
         self.maxDiff = None
@@ -76,21 +81,22 @@ class IdentifyMessagesTest(unittest.TestCase):
         template_data = whatsapp_archive.TemplateData(messages, "fake_filename")
         self.assertEqual(template_data, {
             'by_user': [
-                ('nobody', [
+                ('nobody', datetime.date(2018, 2, 19), [
                     (datetime.datetime(2018, 2, 19, 17, 2),
                         'nobody', 'Los mensajes y llamadas en este chat ahora '
                         'están protegidos con cifrado de extremo a extremo. '
                         'Toca para más información.'),
                 ]),
-                ('human1', [
+                ('human1', datetime.date(2018, 2, 19), [
                     (datetime.datetime(2018, 2, 19, 17, 2), 'human1', 'Hola'),
                 ]),
-                ('human2', [
+                ('human2', datetime.date(2018, 2, 19), [
                     (datetime.datetime(2018, 2, 19, 17, 14), 'human2', 'como estás?'),
                 ]),
               ],
-              'input_basename': 'fake_filename',
-              'input_full_path': 'fake_filename'})
+            'dates': [((2018, 2), [(19, datetime.date(2018, 2, 19))])],
+            'input_basename': 'fake_filename',
+            'input_full_path': 'fake_filename'})
 
     def testNeil(self):
         self.maxDiff = None
@@ -98,13 +104,14 @@ class IdentifyMessagesTest(unittest.TestCase):
         template_data = whatsapp_archive.TemplateData(messages, "fake_filename")
         self.assertEqual(template_data, {
             'by_user': [
-                ('Neil', [
+                ('Neil', datetime.date(2016, 6, 27), [
                     (datetime.datetime(2016, 6, 27, 8, 4, 8),
                         'Neil', 'Hi'),
                 ]),
               ],
-              'input_basename': 'fake_filename',
-              'input_full_path': 'fake_filename'})
+            'dates': [((2016, 6), [(27, datetime.date(2016, 6, 27))])],
+            'input_basename': 'fake_filename',
+            'input_full_path': 'fake_filename'})
 
     def testEwoutTime(self):
         INPUT = """[02-12-18 22:55:45]"""
