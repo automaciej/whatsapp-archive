@@ -3,7 +3,6 @@
 """Reads a WhatsApp conversation export file and writes a HTML file."""
 
 import argparse
-import datetime
 import dateutil.parser
 import itertools
 import jinja2
