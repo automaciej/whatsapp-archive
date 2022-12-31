@@ -9,8 +9,9 @@ import itertools
 import jinja2
 import logging
 import os.path
-import os
 import re
+
+from typing import Optional
 
 # Format of the standard WhatsApp export line. This is likely to continue to
 # change in the future and so this application will need to be updated.
@@ -79,11 +80,32 @@ def ParseLine(matchers: Matchers, line: str):
     if m:
         d = dateutil.parser.parse("%s %s" % (m.group('date'),
             m.group('time')), dayfirst=True)
-        return d, "nobody", m.group('body')
+        return d, 'nobody', m.group('body')
     return None
 
 
-def IdentifyMessages(lines, os=os.getcwd()):
+FILE_RE = u'(?P<path>(AUD|IMG|VID)-(\d){8}-WA\d+\.(m4a|jpg|mp4))'
+
+
+def IsMediaMessage(msg_body: str) -> bool:
+    """Guesses whether the current message is a media message or not.
+
+    Since media files seem to be named consistently, we don't need to match the
+    text in the parentheses. We just match that there's something in
+    parentheses.
+    """
+    m = re.match(u'\u200e?' + FILE_RE + ' \([a-z ]+\)', msg_body, re.U)
+    return m is not None
+
+
+
+def MediaMessageToPath(msg_body: str) -> Optional[str]:
+    m = re.match(u'\u200e?' + FILE_RE, msg_body, re.U)
+    if m:
+        return m.group('path')
+
+
+def IdentifyMessages(lines):
     """Input text can contain multi-line messages. If there's a line that
     doesn't start with a date and a name, that's probably a continuation of the
     previous message and should be appended to it.
@@ -93,6 +115,7 @@ def IdentifyMessages(lines, os=os.getcwd()):
     msg_date = None
     msg_user = None
     msg_body = None
+    msg_media = None
     for line in lines:
         m = ParseLine(matchers, line)
         if m is not None:
@@ -100,12 +123,10 @@ def IdentifyMessages(lines, os=os.getcwd()):
                 # We have a new message, so there will be no more lines for the
                 # one we've seen previously -- it's complete. Let's add it to
                 # the list.
-                if "(archivo adjunto)" in msg_body or "(attached file)" in msg_body:
-                    # Determines if the current message have a file (WORK ONLY IN SPANISH AND ENGLISH)
-                    messages.append((msg_date, msg_user, msg_body, (os + "\\" + msg_body.split("(")[0][1:-1]).replace("\\", '/')))
-                else:
-                    # if not, is filled whit "0"
-                    messages.append((msg_date, msg_user, msg_body, 0))
+                if IsMediaMessage(msg_body):
+                    msg_media = MediaMessageToPath(msg_body)
+                messages.append((msg_date, msg_user, msg_body, msg_media))
+                msg_date, msg_user, msg_body, msg_media = None, None, None, None
             msg_date, msg_user, msg_body = m
         else:
             if msg_date is None:
@@ -113,12 +134,13 @@ def IdentifyMessages(lines, os=os.getcwd()):
                         ', regexes are first_line = ' + repr(matchers.firstline) +
                         ' and line =' + repr(matchers.line))
             msg_body += '\n' + line.strip()
+            if IsMediaMessage(line.strip()):
+                msg_media = MediaMessageToPath(line.strip())
     # The last message remains. Let's add it, if it exists.
     if msg_date is not None:
-        if "(archivo adjunto)" in msg_body or "(attached file)" in msg_body:
-            messages.append((msg_date, msg_user, msg_body, (os + "\\" + msg_body.split("(")[0][1:-1]).replace("\\", '/')))
-        else:
-            messages.append((msg_date, msg_user, msg_body, 0))
+        if IsMediaMessage(msg_body):
+            msg_media = MediaMessageToPath(msg_body)
+        messages.append((msg_date, msg_user, msg_body, msg_media))
     return messages
 
 
@@ -246,15 +268,25 @@ def FormatHTML(data):
             </a>
             <span class="date">{{ messages[0][0] }}</span>
             <ol class="messages">
-            {% for message in messages %}
-                {% if message[3] != 0 %}
-                    {% if "IMG" in message[3] %}
-                        <a href='{{ message[3] }}' target="_blank"><img src='{{ message[3] }}' width="400"></img></a>
-                    {% elif "opus" in message[3] %}
-                        <li> <A HREF="{{ message[3] }}" target="_blank"> ESCUCHAR AUDIO </A> </li>
+            {% for _, _, body, media in messages %}
+                {% if media is not none %}
+                    {% if "IMG" in media %}
+                        <li>
+                        <a href='{{ media }}' target="_blank"><img src='{{ media }}' width="400"></img></a>
+                        </li>
+                    {% elif "opus" in media %}
+                        <li>
+                          <audio controls>
+                            <source src="{{ media }}" type="audio/ogg; codecs=opus">
+                          </audio>
+                        </li>
+                    {% else %}
+                        <li>
+                          unsupported media {{ media | e }}
+                        </li>
                     {% endif %}
                 {% else %}
-                    <li>{{ message[2] | e }}</li>
+                    <li>{{ body | e }}</li>
                 {% endif %}
             {% endfor %}
             </ol>
