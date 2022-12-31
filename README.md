@@ -15,4 +15,7 @@ On Linux, run this in shell. On Windows, run this in cmd.
 
     ./whatsapp_archive.py -i your_file.txt -o output.html
 
+Coding style follows the [Google Python Style Guide][pystyle].
+
 [saving]: https://faq.whatsapp.com/en/android/23756533/?category=5245251
+[pystyle]: https://google.github.io/styleguide/pyguide.html
