@@ -20,6 +20,7 @@ from typing import Optional
 TIME_RE = '(?P<time>[\d:]+( [AP]M)?)'
 SEPARATOR_RE = '( - |: | )'
 NAME_RE = '(?P<name>[^:]+)'
+DTSEP_RE = ' ?[,à]? ?'
 
 
 class Error(Exception):
@@ -41,7 +42,7 @@ def _MakeDatePattern():
 
 
 def _MakeDateTimePattern():
-    return '\[?' + _MakeDatePattern() + ',? ' + TIME_RE + '\]?'
+    return '\[?' + _MakeDatePattern() + DTSEP_RE + TIME_RE + '\]?'
 
 
 def _MakeLinePattern():
