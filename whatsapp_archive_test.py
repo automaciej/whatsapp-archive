@@ -26,6 +26,9 @@ INPUT_5 = ["19-02-18 17:02 - Los mensajes y llamadas en este chat ahora están "
 # 12-hour format.
 INPUT_6 = ["2016-06-27, 8:04:08 AM: Neil: Hi\n",]
 
+# french format for date
+INPUT_7 = ["17/12/2022 à 17:25 - personne1: Vaccin ok 💪\n",]
+
 class IdentifyMessagesTest(unittest.TestCase):
 
     def testInputMultiline(self):
@@ -113,6 +116,23 @@ class IdentifyMessagesTest(unittest.TestCase):
                 ]),
               ],
             'dates': [((2016, 6), [(27, datetime.date(2016, 6, 27))])],
+            'input_basename': 'fake_filename',
+            'input_full_path': 'fake_filename'})
+    
+    def testJLTRY(self):
+        self.maxDiff = None
+        messages = whatsapp_archive.IdentifyMessages(INPUT_7)
+        template_data = whatsapp_archive.TemplateData(messages, "fake_filename") 
+        print(template_data['by_user'])       
+        self.assertEqual(template_data, {
+            'by_user': [
+                ('personne1', datetime.date(2022, 12, 17), [
+                    (datetime.datetime(2022, 12, 17, 17, 25),
+                        'personne1',
+                        'Vaccin ok 💪', None),
+                ]),
+              ],
+            'dates': [((2022, 12), [(17, datetime.date(2022, 12, 17))])],
             'input_basename': 'fake_filename',
             'input_full_path': 'fake_filename'})
 
