@@ -85,7 +85,7 @@ def ParseLine(matchers: Matchers, line: str):
     return None
 
 
-FILE_RE = u'(?P<path>(AUD|IMG|VID)-(\d){8}-WA\d+\.(m4a|jpg|mp4))'
+FILE_RE = u'(?P<path>(AUD|PTT|STK|IMG|VID|DOC)-(\d){8}-WA\d+\.(m4a|jpg|mp4|pdf|webp|gif|opus|mp3|aac|wav|mpeg|3gp|avi|wmm|jpeg|png|tiff|ico))'
 
 
 def IsMediaMessage(msg_body: str) -> bool:
@@ -271,32 +271,18 @@ def FormatHTML(data):
             <ol class="messages">
             {% for _, _, body, media in messages %}
                 {% if media is not none %}
-                    {% if "IMG" in media %}
-                        <li>
+                    {% if "IMG" in media or "jpeg" in media or "png" in media or "tiff" in media or "ico" in media or "gif" in media %}
                         <a href='{{ media }}' target="_blank"><img src='{{ media }}' width="400"></img></a>
-                        </li>
-                    {% elif "opus" in media %}
-                        <li>
-                          <audio controls>
-                            <source src="{{ media }}" type="audio/ogg; codecs=opus">
-                          </audio>
-                        </li>
-                    {% elif "m4a" in media %}
-                        <li>
-                          <audio controls>
+                    {% elif "opus" in media or "m4a" in media or "mp3" in media or "AAC" in media or "WAV" in media %}
+                        <audio controls>
                             <source src="{{ media }}" type="audio/x-m4a">
-                          </audio>
-                        </li>
-                    {% elif "mp4" in media %}
-                        <li>
-                           <video controls>
-                             <source src="{{ media }}" type="video/mp4"/>
-                           </video>
-                        </li>
+                        </audio>
+                    {% elif "mp4" in media or ".MPEG" in media or ".3GP" in media or ".AVI" in media or ".WMM" in media %}
+                       <video controls>
+                         <source src="{{ media }}" type="video/mp4"/>
+                       </video>
                     {% else %}
-                        <li>
-                          unsupported media {{ media | e }}
-                        </li>
+                        unsupported media {{ media | e }}
                     {% endif %}
                 {% else %}
                     <li>{{ body | e }}</li>
