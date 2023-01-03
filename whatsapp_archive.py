@@ -272,31 +272,21 @@ def FormatHTML(data):
             {% for _, _, body, media in messages %}
                 {% if media is not none %}
                     {% if "IMG" in media %}
-                        <li>
                         <a href='{{ media }}' target="_blank"><img src='{{ media }}' width="400"></img></a>
-                        </li>
                     {% elif "opus" in media %}
-                        <li>
-                          <audio controls>
+                        <audio controls>
                             <source src="{{ media }}" type="audio/ogg; codecs=opus">
-                          </audio>
-                        </li>
+                        </audio>
                     {% elif "m4a" in media %}
-                        <li>
-                          <audio controls>
+                        <audio controls>
                             <source src="{{ media }}" type="audio/x-m4a">
-                          </audio>
-                        </li>
-                    {% elif "mp4" in media %}
-                        <li>
-                           <video controls>
+                        </audio>
+                    {% elif "mp4" in media %}}
+                        <video controls>
                              <source src="{{ media }}" type="video/mp4"/>
-                           </video>
-                        </li>
+                         </video>
                     {% else %}
-                        <li>
-                          unsupported media {{ media | e }}
-                        </li>
+                        unsupported media {{ media | e }}
                     {% endif %}
                 {% else %}
                     <li>{{ body | e }}</li>
