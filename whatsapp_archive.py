@@ -206,7 +206,7 @@ def FormatHTML(data):
                 margin: 1em;
                 padding-left: 1.5em;
             }
-            ol.messages li {
+            ol.messages li.text-msg {
                 margin-left: 1em;
                 font-size: 12px;
                 background-color: rgb(220,248,200);
@@ -299,7 +299,7 @@ def FormatHTML(data):
                         </li>
                     {% endif %}
                 {% else %}
-                    <li>{{ body | e }}</li>
+                    <li class="text-msg">{{ body | e }}</li>
                 {% endif %}
             {% endfor %}
             </ol>
