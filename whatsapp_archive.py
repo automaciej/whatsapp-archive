@@ -8,10 +8,12 @@ import dateutil.parser
 import itertools
 import jinja2
 import logging
+import mimetypes
 import os.path
 import re
 
 from typing import Optional
+from dataclasses import dataclass
 
 # Format of the standard WhatsApp export line. This is likely to continue to
 # change in the future and so this application will need to be updated.
@@ -85,10 +87,22 @@ def ParseLine(matchers: Matchers, line: str):
     return None
 
 
-FILE_RE = u'(?P<path>(AUD|IMG|VID)-(\d){8}-WA\d+\.(m4a|jpg|mp4))'
+FILE_RE = u'(?P<path>(AUD|PTT|STK|IMG|VID|DOC)-(\d){8}-WA\d+\.(m4a|jpg|mp4|pdf|webp|gif|opus|mp3|aac|wav|mpeg|3gp|avi|wmm|jpeg|png|tiff|ico))'
 
 
-def IsMediaMessage(msg_body: str) -> bool:
+@dataclass
+class Media:
+    path: str
+    mime: str
+
+
+def MediaMessageToPath(msg_body: str) -> Optional[str]:
+    m = re.match(u'\u200e?' + FILE_RE, msg_body, re.U)
+    if m:
+        return m.group('path')
+
+
+def AsMedia(msg_body: str) -> Optional[Media]:
     """Guesses whether the current message is a media message or not.
 
     Since media files seem to be named consistently, we don't need to match the
@@ -96,14 +110,11 @@ def IsMediaMessage(msg_body: str) -> bool:
     parentheses.
     """
     m = re.match(u'\u200e?' + FILE_RE + ' \([a-z ]+\)', msg_body, re.U)
-    return m is not None
-
-
-
-def MediaMessageToPath(msg_body: str) -> Optional[str]:
-    m = re.match(u'\u200e?' + FILE_RE, msg_body, re.U)
-    if m:
-        return m.group('path')
+    if m is not None:
+        path = MediaMessageToPath(msg_body)
+        mime_type, _ = mimetypes.guess_type(path)
+        return Media(path, mime_type)
+    return None
 
 
 def IdentifyMessages(lines):
@@ -124,8 +135,7 @@ def IdentifyMessages(lines):
                 # We have a new message, so there will be no more lines for the
                 # one we've seen previously -- it's complete. Let's add it to
                 # the list.
-                if IsMediaMessage(msg_body):
-                    msg_media = MediaMessageToPath(msg_body)
+                msg_media = AsMedia(msg_body)
                 messages.append((msg_date, msg_user, msg_body, msg_media))
                 msg_date, msg_user, msg_body, msg_media = None, None, None, None
             msg_date, msg_user, msg_body = m
@@ -135,12 +145,10 @@ def IdentifyMessages(lines):
                         ', regexes are first_line = ' + repr(matchers.firstline) +
                         ' and line =' + repr(matchers.line))
             msg_body += '\n' + line.strip()
-            if IsMediaMessage(line.strip()):
-                msg_media = MediaMessageToPath(line.strip())
+            msg_media = AsMedia(line.strip())
     # The last message remains. Let's add it, if it exists.
     if msg_date is not None:
-        if IsMediaMessage(msg_body):
-            msg_media = MediaMessageToPath(msg_body)
+        msg_media = AsMedia(msg_body)
         messages.append((msg_date, msg_user, msg_body, msg_media))
     return messages
 
@@ -262,46 +270,34 @@ def FormatHTML(data):
         {% endfor %}
         </ol>
         <ol class="users">
-        {% for user, first_msg_date, messages in by_user %}
+        {% for user, first_msg_date, messages in by_user -%}
             <li>
             <a id="{{first_msg_date}}">
                 <span class="username">{{ user }}</span>
             </a>
             <span class="date">{{ messages[0][0] }}</span>
             <ol class="messages">
-            {% for _, _, body, media in messages %}
-                {% if media is not none %}
-                    {% if "IMG" in media %}
-                        <li>
-                        <a href='{{ media }}' target="_blank"><img src='{{ media }}' width="400"></img></a>
-                        </li>
-                    {% elif "opus" in media %}
-                        <li>
-                          <audio controls>
-                            <source src="{{ media }}" type="audio/ogg; codecs=opus">
-                          </audio>
-                        </li>
-                    {% elif "m4a" in media %}
-                        <li>
-                          <audio controls>
-                            <source src="{{ media }}" type="audio/x-m4a">
-                          </audio>
-                        </li>
-                    {% elif "mp4" in media %}
-                        <li>
-                           <video controls>
-                             <source src="{{ media }}" type="video/mp4"/>
-                           </video>
-                        </li>
-                    {% else %}
-                        <li>
-                          unsupported media {{ media | e }}
-                        </li>
-                    {% endif %}
-                {% else %}
-                    <li class="text-msg">{{ body | e }}</li>
-                {% endif %}
-            {% endfor %}
+            {% for _, _, body, media in messages -%}
+            {% if media is not none -%}
+                <li class="media">
+                {% if media.mime.startswith("image/") %}
+                    <a href='{{ media.path }}' target="_blank"><img src='{{ media.path }}' width="400"></img></a>
+                {% elif media.mime.startswith("audio/") %}
+                    <audio controls>
+                        <source src="{{ media.path }}" type="{{ media.mime }}">
+                    </audio>
+                {% elif media.mime.startswith("video/") %}
+                    <video controls>
+                        <source src="{{ media.path }}" type="{{ media.mime }}"/>
+                    </video>
+                {%- else -%}
+                    unsupported media {{ media.path | e }}
+                {%- endif %}
+                </li>
+            {% else %}
+                <li class="text-msg">{{ body | e }}</li>
+            {% endif %}
+            {%- endfor %}
             </ol>
             </li>
         {% endfor %}
