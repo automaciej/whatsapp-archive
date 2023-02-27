@@ -123,7 +123,6 @@ class IdentifyMessagesTest(unittest.TestCase):
         self.maxDiff = None
         messages = whatsapp_archive.IdentifyMessages(INPUT_7)
         template_data = whatsapp_archive.TemplateData(messages, "fake_filename") 
-        print(template_data['by_user'])       
         self.assertEqual(template_data, {
             'by_user': [
                 ('personne1', datetime.date(2022, 12, 17), [
@@ -212,17 +211,17 @@ class IdentifyMessagesTest(unittest.TestCase):
         ], messages)
 
 
-    def testIsMediaMessageAudio(self):
-        self.assertTrue(whatsapp_archive.IsMediaMessage('AUD-20221225-WA0005.m4a (arquivo anexado)'))
+    def testAsMediaAudio(self):
+        self.assertTrue(whatsapp_archive.AsMedia('AUD-20221225-WA0005.m4a (arquivo anexado)'))
 
-    def testIsMediaMessageAudioWithLRM(self):
-        self.assertTrue(whatsapp_archive.IsMediaMessage('\u200eAUD-20221225-WA0005.m4a (arquivo anexado)'))
+    def testAsMediaAudioWithLRM(self):
+        self.assertTrue(whatsapp_archive.AsMedia('\u200eAUD-20221225-WA0005.m4a (arquivo anexado)'))
 
-    def testIsMediaMessageImage(self):
-        self.assertTrue(whatsapp_archive.IsMediaMessage('\u200eIMG-20221224-WA0017.jpg (arquivo anexado)'))
+    def testAsMediaImage(self):
+        self.assertTrue(whatsapp_archive.AsMedia('\u200eIMG-20221224-WA0017.jpg (arquivo anexado)'))
 
-    def testIsMediaMessageVideo(self):
-        self.assertTrue(whatsapp_archive.IsMediaMessage('\u200eVID-20221225-WA0010.mp4 (arquivo anexado)'))
+    def testAsMediaVideo(self):
+        self.assertTrue(whatsapp_archive.AsMedia('\u200eVID-20221225-WA0010.mp4 (arquivo anexado)'))
 
     def testMediaMessageToPath(self):
         self.assertEqual(
