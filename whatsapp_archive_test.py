@@ -123,7 +123,6 @@ class IdentifyMessagesTest(unittest.TestCase):
         self.maxDiff = None
         messages = whatsapp_archive.IdentifyMessages(INPUT_7)
         template_data = whatsapp_archive.TemplateData(messages, "fake_filename") 
-        print(template_data['by_user'])       
         self.assertEqual(template_data, {
             'by_user': [
                 ('personne1', datetime.date(2022, 12, 17), [
