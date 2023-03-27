@@ -16,9 +16,21 @@ On Linux, run this in shell. On Windows, run this in cmd.
 
     ./whatsapp_archive.py -i your_file.txt -o output.html
 
-Coding style follows the [Google Python Style Guide][pystyle].
+## Contributing
 
-Interesting forks of this repository:
+When sending pull requests, please stick to these points:
+
+1. Make sure the old unit tests are passing.
+2. Add unit tests related to your pull request.
+3. Make sure the coding style follows the [Google Python Style Guide][pystyle].
+4. The generated HTML and CSS must be valid. (You can use https://validator.w3.org/ to check it.)
+
+If you send me a pull request which doesn't do the above things, I'll add
+comments asking for changes.
+
+[pystyle]: https://google.github.io/styleguide/pyguide.html
+
+## Interesting forks of this repository
 
 - https://github.com/shrick/comm-history supports email as well.
 - https://github.com/dsadinoff/whatsapp-archive handles bidirectional text
@@ -27,4 +39,3 @@ Interesting forks of this repository:
   about how to make an export.
 
 [saving]: https://faq.whatsapp.com/en/android/23756533/?category=5245251
-[pystyle]: https://google.github.io/styleguide/pyguide.html
