@@ -11,6 +11,7 @@ import logging
 import mimetypes
 import os.path
 import re
+import unicodedata
 
 from typing import Optional
 from dataclasses import dataclass
@@ -115,6 +116,22 @@ def AsMedia(msg_body: str) -> Optional[Media]:
         mime_type, _ = mimetypes.guess_type(path)
         return Media(path, mime_type)
     return None
+
+
+def TextDirection(text: str) -> str:
+    """Guesses text directionality (rtl or ltr) from the first strong character.
+
+    Scans past neutral characters (digits, punctuation, emoji) to find the
+    first character with a strong direction (Unicode bidirectional category
+    L, R, or AL). Defaults to 'ltr' if none is found.
+    """
+    for ch in text:
+        bidi = unicodedata.bidirectional(ch)
+        if bidi in ('R', 'AL'):
+            return 'rtl'
+        if bidi == 'L':
+            return 'ltr'
+    return 'ltr'
 
 
 def IdentifyMessages(lines):
@@ -231,6 +248,9 @@ def FormatHTML(data):
                 box-shadow:  5px 5px 5px #b0c6a0,
                             0px -0px 7px #fffff0;
             }
+            ol.messages li.text-msg[dir="rtl"] {
+                text-align: right;
+            }
             span.username {
                 color: rgb(26, 26, 26);
                 font-size: 14px;
@@ -295,7 +315,7 @@ def FormatHTML(data):
                 {%- endif %}
                 </li>
             {% else %}
-                <li class="text-msg">{{ body | e }}</li>
+                <li class="text-msg" dir="{{ body | direction }}">{{ body | e }}</li>
             {% endif %}
             {%- endfor %}
             </ol>
@@ -305,7 +325,9 @@ def FormatHTML(data):
     </body>
     </html>
     """
-    return jinja2.Environment().from_string(tmpl).render(**data)
+    env = jinja2.Environment()
+    env.filters['direction'] = TextDirection
+    return env.from_string(tmpl).render(**data)
 
 
 def main():

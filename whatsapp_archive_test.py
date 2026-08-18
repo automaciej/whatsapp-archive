@@ -230,6 +230,32 @@ class IdentifyMessagesTest(unittest.TestCase):
             'VID-20221225-WA0010.mp4'
         )
 
+    @parameterized.parameterized.expand([
+        ('English text', 'ltr'),
+        ('שלום עולם', 'rtl'),  # Hebrew, "Hello world"
+        ('مرحبا بالعالم', 'rtl'),  # Arabic, "Hello world"
+        ('123 456', 'ltr'),  # digits alone are neutral, default to ltr
+        ('', 'ltr'),  # empty body, default to ltr
+        ('😀 שלום', 'rtl'),  # emoji (neutral) before first strong char
+    ])
+    def testTextDirection(self, text, expected_direction):
+        self.assertEqual(whatsapp_archive.TextDirection(text), expected_direction)
+
+    def testFormatHTMLRendersRTLMessages(self):
+        """Addressing #issue5: RTL text should get dir="rtl" in the output."""
+        INPUT = ["17.02.19, 12:28 - human1: שלום עולם\n"]
+        messages = whatsapp_archive.IdentifyMessages(INPUT)
+        template_data = whatsapp_archive.TemplateData(messages, "fake_filename")
+        html = whatsapp_archive.FormatHTML(template_data)
+        self.assertIn('dir="rtl"', html)
+
+    def testFormatHTMLRendersLTRMessages(self):
+        INPUT = ["17.02.19, 12:28 - human1: hello world\n"]
+        messages = whatsapp_archive.IdentifyMessages(INPUT)
+        template_data = whatsapp_archive.TemplateData(messages, "fake_filename")
+        html = whatsapp_archive.FormatHTML(template_data)
+        self.assertIn('dir="ltr"', html)
+
 
 if __name__ == '__main__':
     unittest.main()
