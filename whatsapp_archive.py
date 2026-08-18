@@ -20,7 +20,7 @@ from dataclasses import dataclass
 # change in the future and so this application will need to be updated.
 # The biggest challenge is that every language seems to have its own set of
 # rules for dates, and it's not trivial to match them all correctly.
-TIME_RE = '(?P<time>[\d:]+( [AP]M)?)'
+TIME_RE = r'(?P<time>[\d:]+( [AP]M)?)'
 SEPARATOR_RE = '( - |: | )'
 NAME_RE = '(?P<name>[^:]+)'
 DTSEP_RE = ' ?[,à]? ?'
@@ -37,15 +37,15 @@ Matchers = collections.namedtuple(
 
 def _MakeDatePattern():
     patterns = []
-    d = '[\d]+'
-    separators = ['-', '\.', '/']
+    d = r'[\d]+'
+    separators = ['-', r'\.', '/']
     for sep in separators:
         patterns.append(f'{d}{sep}{d}{sep}{d}')
     return '(?P<date>' + '|'.join(patterns) + ')'
 
 
 def _MakeDateTimePattern():
-    return '\[?' + _MakeDatePattern() + DTSEP_RE + TIME_RE + '\]?'
+    return r'\[?' + _MakeDatePattern() + DTSEP_RE + TIME_RE + r'\]?'
 
 
 def _MakeLinePattern():
@@ -88,7 +88,7 @@ def ParseLine(matchers: Matchers, line: str):
     return None
 
 
-FILE_RE = u'(?P<path>(AUD|PTT|STK|IMG|VID|DOC)-(\d){8}-WA\d+\.(m4a|jpg|mp4|pdf|webp|gif|opus|mp3|aac|wav|mpeg|3gp|avi|wmm|jpeg|png|tiff|ico))'
+FILE_RE = r'(?P<path>(AUD|PTT|STK|IMG|VID|DOC)-(\d){8}-WA\d+\.(m4a|jpg|mp4|pdf|webp|gif|opus|mp3|aac|wav|mpeg|3gp|avi|wmm|jpeg|png|tiff|ico))'
 
 
 @dataclass
@@ -110,7 +110,7 @@ def AsMedia(msg_body: str) -> Optional[Media]:
     text in the parentheses. We just match that there's something in
     parentheses.
     """
-    m = re.match(u'\u200e?' + FILE_RE + ' \([a-z ]+\)', msg_body, re.U)
+    m = re.match(u'\u200e?' + FILE_RE + r' \([a-z ]+\)', msg_body, re.U)
     if m is not None:
         path = MediaMessageToPath(msg_body)
         mime_type, _ = mimetypes.guess_type(path)
