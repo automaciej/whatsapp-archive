@@ -33,13 +33,14 @@ comments asking for changes.
 ## Interesting forks of this repository
 
 - https://github.com/shrick/comm-history supports email as well.
-- https://github.com/dsadinoff/whatsapp-archive handles bidirectional text
-  (see Issue #5).
+- https://github.com/dsadinoff/whatsapp-archive was the original inspiration
+  for RTL/bidi text support (Issue #5); that feature has since been
+  implemented natively in this repository.
 - https://github.com/djax666/whatsapp-archive contains good instructions
   about how to make an export, plus a heavier reskin with thumbnails,
   avatars, and a jQuery-based media viewer.
-- https://github.com/FalkTannhaeuser/whatsapp-archive adds a table of
-  contents / internal links, German date format support, and mobile-friendly
-  image scaling.
+- https://github.com/FalkTannhaeuser/whatsapp-archive adds mobile-friendly
+  image scaling and a manually-curated table of contents (via an external
+  YAML file, not automatic).
 
 [saving]: https://faq.whatsapp.com/en/android/23756533/?category=5245251
