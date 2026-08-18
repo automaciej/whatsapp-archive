@@ -36,6 +36,10 @@ comments asking for changes.
 - https://github.com/dsadinoff/whatsapp-archive handles bidirectional text
   (see Issue #5).
 - https://github.com/djax666/whatsapp-archive contains good instructions
-  about how to make an export.
+  about how to make an export, plus a heavier reskin with thumbnails,
+  avatars, and a jQuery-based media viewer.
+- https://github.com/FalkTannhaeuser/whatsapp-archive adds a table of
+  contents / internal links, German date format support, and mobile-friendly
+  image scaling.
 
 [saving]: https://faq.whatsapp.com/en/android/23756533/?category=5245251
