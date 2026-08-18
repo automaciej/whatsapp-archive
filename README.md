@@ -6,15 +6,35 @@ Use the [Saving your chat history][saving] instructions to export your chat
 history. You'll get an email with a .txt file. Save it on disk, and then run
 this script.
 
-Requirements (on Debian):
+## Installation
+
+Option 1, pip (any OS with Python 3.9+):
+
+    pip install .
+
+This installs a `whatsapp-archive` command:
+
+    whatsapp-archive -i your_file.txt -o output.html
+
+Option 2, run the script directly without installing, using a virtual
+environment:
+
+    python3 -m venv venv
+    source venv/bin/activate   # on Windows: venv\Scripts\activate
+    pip install -r requirements.txt
+    ./whatsapp_archive.py -i your_file.txt -o output.html
+
+Option 3, on Debian, install dependencies as system packages:
 
    * `python3-dateutil`
    * `python3-jinja2`
-   * `python3-parameterized`
 
-On Linux, run this in shell. On Windows, run this in cmd.
+then run:
 
     ./whatsapp_archive.py -i your_file.txt -o output.html
+
+For running the tests, also install the dev requirements:
+`pip install -r requirements-dev.txt` (or `python3-parameterized` on Debian).
 
 ## Contributing
 
